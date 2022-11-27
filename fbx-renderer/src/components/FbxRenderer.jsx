@@ -1,129 +1,42 @@
-import { useEffect } from "react";
-import { useRef } from "react";
-import * as THREE from "three";
-import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
-import Stats from "three/addons/libs/stats.module.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { Canvas } from "@react-three/fiber";
+import { useFBX, OrbitControls, useTexture } from "@react-three/drei";
+import { Suspense } from "react";
 
-const CANVAS_WIDTH = 400,
-  CANVAS_HEIGHT = 300;
+const Scene = ({ src, textureSrc }) => {
+  const fbx = useFBX(src);
+  const texture = useTexture(textureSrc);
 
-const FbxRenderer = ({ src, cameraInit, bgColor, intensity }) => {
-  const canvasRef = useRef(null);
+  return (
+    <group>
+      {fbx.children?.map((child) => {
+        return (
+          <mesh {...child} scale={1.2}>
+            <meshStandardMaterial map={texture} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+};
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    let camera, scene, renderer, stats;
-
-    const clock = new THREE.Clock();
-
-    let mixer;
-
-    init();
-    animate();
-
-    function init() {
-      camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        1,
-        2000
-      );
-      camera.position.set(100, 200, 300);
-
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xa0a0a0);
-      scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
-
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-      hemiLight.position.set(0, 200, 0);
-      scene.add(hemiLight);
-
-      const dirLight = new THREE.DirectionalLight(0xffffff);
-      dirLight.position.set(0, 200, 100);
-      dirLight.castShadow = true;
-      dirLight.shadow.camera.top = 180;
-      dirLight.shadow.camera.bottom = -100;
-      dirLight.shadow.camera.left = -120;
-      dirLight.shadow.camera.right = 120;
-      scene.add(dirLight);
-
-      // scene.add( new THREE.CameraHelper( dirLight.shadow.camera ) );
-
-      // ground
-      const mesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(2000, 2000),
-        new THREE.MeshPhongMaterial({ color: 0x999999, depthWrite: false })
-      );
-      mesh.rotation.x = -Math.PI / 2;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
-
-      const grid = new THREE.GridHelper(2000, 20, 0x000000, 0x000000);
-      grid.material.opacity = 0.2;
-      grid.material.transparent = true;
-      scene.add(grid);
-
-      // model
-      const loader = new FBXLoader();
-      loader.load(src, function (object) {
-        mixer = new THREE.AnimationMixer(object);
-
-        const action = mixer.clipAction(object.animations[0]);
-        action.play();
-
-        object.traverse(function (child) {
-          if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        scene.add(object);
-      });
-
-      renderer = new THREE.WebGLRenderer({
-        canvas: canvasRef.current,
-        antialias: true,
-      });
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.shadowMap.enabled = true;
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 100, 0);
-      controls.update();
-
-      window.addEventListener("resize", onWindowResize);
-
-      // stats
-      stats = new Stats();
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    //
-
-    function animate() {
-      requestAnimationFrame(animate);
-
-      const delta = clock.getDelta();
-
-      if (mixer) mixer.update(delta);
-
-      renderer.render(scene, camera);
-
-      stats.update();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canvasRef.current]);
-
-  return <canvas ref={canvasRef} />;
+const FbxRenderer = ({ src, textureSrc }) => {
+  console.log(src);
+  return (
+    <Canvas style={{ width: 300, height: 300 }}>
+      <Suspense fallback={null}>
+        <Scene src={src} textureSrc={textureSrc} />
+        <ambientLight intensity={0.3} />
+        <directionalLight />
+        {/* <Environment preset="sunset" background /> */}
+        <OrbitControls
+          target-y={2}
+          minPolarAngle={1}
+          maxPolarAngle={1}
+          enableZoom={false}
+        />
+      </Suspense>
+    </Canvas>
+  );
 };
 
 export default FbxRenderer;
