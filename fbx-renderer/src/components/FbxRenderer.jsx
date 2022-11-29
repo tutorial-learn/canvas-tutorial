@@ -9,7 +9,14 @@ import {
 } from "@react-three/drei";
 import { useState } from "react";
 
-const Scene = ({ src, textureSrc, replayTrigger, playEndTrigger }) => {
+const Scene = ({
+  src,
+  textureSrc,
+  replayTrigger,
+  scale,
+  timeScale,
+  playEndTrigger,
+}) => {
   const fbx = useFBX(src);
   const texture = useTexture(textureSrc);
   const targetRef = useRef();
@@ -19,8 +26,14 @@ const Scene = ({ src, textureSrc, replayTrigger, playEndTrigger }) => {
 
   useEffect(() => {
     if (actionOptions.length === 0 || !replayTrigger) return;
-    actions[actionOptions[0]].reset().setLoop(LoopOnce).setDuration(10).play();
-  }, [actions, actionOptions, replayTrigger]);
+    actions[actionOptions[0]]
+      .reset()
+      .setLoop(LoopOnce)
+      .setEffectiveTimeScale(timeScale)
+      .play();
+
+    return () => actions[actionOptions[0]].reset().stop();
+  }, [actions, actionOptions, replayTrigger, timeScale]);
 
   useFrame(() => {
     if (actionOptions.length === 0 || !replayTrigger) return;
@@ -28,10 +41,10 @@ const Scene = ({ src, textureSrc, replayTrigger, playEndTrigger }) => {
   });
 
   return (
-    <group ref={targetRef} dispose={null} scale={1.1}>
+    <group ref={targetRef} dispose={null} scale={scale}>
       <primitive object={fbx} />
       {fbx.children?.map((child, idx) => {
-        if (!child.type.includes("Mesh")) return null;
+        // if (!child.type.includes("Mesh")) return null;
         return (
           <mesh {...child} key={idx}>
             <meshLambertMaterial map={texture} />
@@ -42,7 +55,7 @@ const Scene = ({ src, textureSrc, replayTrigger, playEndTrigger }) => {
   );
 };
 
-const FbxRenderer = ({ src, textureSrc }) => {
+const FbxRenderer = ({ src, textureSrc, scale = 1.2, timeScale = 1 }) => {
   const [isPlay, setIsPlay] = useState(true);
 
   const playHandler = () => {
@@ -61,6 +74,8 @@ const FbxRenderer = ({ src, textureSrc }) => {
         <Scene
           src={src}
           textureSrc={textureSrc}
+          scale={scale}
+          timeScale={timeScale}
           replayTrigger={isPlay}
           playEndTrigger={playEndHandler}
         />

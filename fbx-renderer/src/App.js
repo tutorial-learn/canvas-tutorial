@@ -5,18 +5,6 @@ function App() {
   return (
     <div style={{ display: "flex", flexWrap: "wrap" }}>
       <GltfRenderer />
-      <FbxRenderer
-        src="/assets/M00_giant.FBX"
-        textureSrc="/assets/m00_giant00.png"
-      />
-      {/* <FbxRenderer
-        src="/assets/M01_lich.FBX"
-        textureSrc="/assets/M01_lich.png"
-      /> */}
-      {/* <FbxRenderer
-        src="/assets/M02_Minotaur.FBX"
-        textureSrc="/assets/M02_Minotaur.png"
-      /> */}
       {/* <FbxRenderer
         src="/assets/m03_gargoyle.FBX"
         textureSrc="/assets/m03_gargoyle.png"
