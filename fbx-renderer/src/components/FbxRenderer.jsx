@@ -44,7 +44,7 @@ const Scene = ({
     <group ref={targetRef} dispose={null} scale={scale}>
       <primitive object={fbx} />
       {fbx.children?.map((child, idx) => {
-        // if (!child.type.includes("Mesh")) return null;
+        if (!child.type.includes("Mesh")) return null;
         return (
           <mesh {...child} key={idx}>
             <meshLambertMaterial map={texture} />
